@@ -1,0 +1,11 @@
+streamlit>=1.35.0
+anthropic>=0.25.0
+openai>=1.25.0
+streamlit-ace>=0.1.1
+pandas
+numpy
+plotly
+scikit-learn
+matplotlib
+seaborn
+requests
