@@ -42,7 +42,25 @@ def generate_code(prompt: str, model_type: str, api_key: str, current_code: str 
                 temperature=0.2
             )
             code = response.choices[0].message.content
-        else:  # Claude
+        elif model_type == "OpenRouter":
+            client = OpenAI(
+                base_url="https://openrouter.ai/api/v1",
+                api_key=api_key,
+            )
+            response = client.chat.completions.create(
+                model="anthropic/claude-3.5-sonnet", # Default for OpenRouter
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": user_message}
+                ],
+                temperature=0.2,
+                extra_headers={
+                    "HTTP-Referer": "https://streamlitforge.com", # Optional
+                    "X-Title": "StreamlitForge", # Optional
+                }
+            )
+            code = response.choices[0].message.content
+        else:  # Claude (Direct)
             client = Anthropic(api_key=api_key)
             response = client.messages.create(
                 model="claude-3-5-sonnet-20240620",
