@@ -36,22 +36,14 @@ with st.sidebar:
     if nombre_archivo != st.session_state.nombre_archivo:
         st.session_state.nombre_archivo = nombre_archivo
 
-    modelo = st.radio("Modelo:", ["Claude", "GPT-4o", "OpenRouter"], index=2)
-    
-    # Manejo de API Keys (Secrets vs Manual)
-    secrets_key = ""
-    if modelo == "GPT-4o":
-        secrets_key = st.secrets.get("OPENAI_API_KEY", "")
-    elif modelo == "OpenRouter":
-        secrets_key = st.secrets.get("OPENROUTER_API_KEY", "")
-    else:
-        secrets_key = st.secrets.get("ANTHROPIC_API_KEY", "")
+    # Manejo de API Key (Solo OpenRouter)
+    secrets_key = st.secrets.get("OPENROUTER_API_KEY", "")
 
     if secrets_key:
-        st.success(f"✅ API Key detectada en secrets para {modelo}")
+        st.success("✅ API Key de OpenRouter detectada en secrets")
         st.session_state.api_key = secrets_key
     else:
-        api_key_manual = st.text_input("API Key:", type="password", value=st.session_state.api_key)
+        api_key_manual = st.text_input("OpenRouter API Key:", type="password", value=st.session_state.api_key)
         if api_key_manual:
             st.session_state.api_key = api_key_manual
 
@@ -59,10 +51,10 @@ with st.sidebar:
         if not descripcion:
             st.warning("Por favor describe la aplicación.")
         elif not st.session_state.api_key:
-            st.warning(f"Por favor ingresa una API Key para {modelo} o configúrala en secrets.")
+            st.warning("Por favor ingresa tu API Key de OpenRouter o configúrala en secrets.")
         else:
-            with st.spinner("Generando código..."):
-                codigo = generate_code(descripcion, modelo, st.session_state.api_key)
+            with st.spinner("Generando código con Gemini 3.1 Flash-Lite..."):
+                codigo = generate_code(descripcion, st.session_state.api_key)
                 if codigo:
                     st.session_state.codigo_actual = codigo
                     st.session_state.iteracion += 1
@@ -166,8 +158,8 @@ if st.session_state.codigo_actual:
         if not cambio:
             st.warning("Describe qué quieres cambiar.")
         else:
-            with st.spinner("Refinando código..."):
-                nuevo_codigo = generate_code(cambio, modelo, st.session_state.api_key, current_code=st.session_state.codigo_actual)
+            with st.spinner("Refinando código con Gemini 3.1 Flash-Lite..."):
+                nuevo_codigo = generate_code(cambio, st.session_state.api_key, current_code=st.session_state.codigo_actual)
                 if nuevo_codigo:
                     st.session_state.codigo_actual = nuevo_codigo
                     st.session_state.iteracion += 1
