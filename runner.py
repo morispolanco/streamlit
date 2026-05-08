@@ -4,20 +4,23 @@ import sys
 
 def run_app(file_path: str):
     """Ejecuta la aplicación de Streamlit en un proceso separado."""
+    # Asegurar ruta absoluta
+    file_path = os.path.abspath(file_path)
+    
     try:
+        cmd = [sys.executable, "-m", "streamlit", "run", file_path]
+        
         if sys.platform == "win32":
-            # En Windows usamos CREATE_NEW_CONSOLE para que se vea la terminal si se desea,
-            # o simplemente Popen para que corra en segundo plano.
             subprocess.Popen(
-                ["streamlit", "run", file_path],
+                cmd,
                 creationflags=subprocess.CREATE_NEW_CONSOLE
             )
         else:
             subprocess.Popen(
-                ["streamlit", "run", file_path],
+                cmd,
                 start_new_session=True
             )
-        return True, "Lanzando aplicación..."
+        return True, f"Lanzando aplicación: {os.path.basename(file_path)}"
     except Exception as e:
         return False, str(e)
 
