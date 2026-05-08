@@ -15,7 +15,7 @@ REGLAS DE GENERACIÓN:
 7. Incluye `st.spinner()` en operaciones que puedan tardar
 8. Agrega docstring al inicio del archivo explicando qué hace la app
 9. El código debe funcionar al correr `streamlit run archivo.py` sin configuración adicional
-10. Si la app requiere una API key, léela de `st.secrets` o variable de entorno, NUNCA hardcodeada
+10. MANEJO DE API KEYS: Si la app requiere una API key (OpenAI, OpenRouter, etc.), intenta leerla de `st.secrets`. Si no existe, DEBES incluir un `st.sidebar.text_input(..., type="password")` para que el usuario la ingrese manualmente y usar ese valor. NUNCA la dejes hardcodeada.
 
 FORMATO DE RESPUESTA:
 Solo código Python. Nada más.
