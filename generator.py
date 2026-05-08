@@ -1,7 +1,6 @@
 import os
 import streamlit as st
 from openai import OpenAI
-from anthropic import Anthropic
 
 SYSTEM_PROMPT = """Eres un experto desarrollador de aplicaciones Streamlit. 
 Tu única salida es código Python puro, sin explicaciones, sin bloques markdown, sin texto antes o después del código.
@@ -22,8 +21,8 @@ FORMATO DE RESPUESTA:
 Solo código Python. Nada más.
 """
 
-def generate_code(prompt: str, model_type: str, api_key: str, current_code: str = "") -> str:
-    """Llama al LLM para generar o modificar el código."""
+def generate_code(prompt: str, api_key: str, current_code: str = "") -> str:
+    """Llama a OpenRouter (Gemini 3.1 Flash-Lite) para generar o modificar el código."""
     
     if current_code:
         user_message = f"CÓDIGO ACTUAL:\n{current_code}\n\nCAMBIO SOLICITADO:\n{prompt}\n\nModifica el código para incorporar el cambio. Devuelve el código completo modificado, no solo el fragmento cambiado."
@@ -31,47 +30,23 @@ def generate_code(prompt: str, model_type: str, api_key: str, current_code: str 
         user_message = f"Crea una aplicación Streamlit que haga lo siguiente:\n\n{prompt}\n\nGenera el código completo y funcional."
 
     try:
-        if model_type == "GPT-4o":
-            client = OpenAI(api_key=api_key)
-            response = client.chat.completions.create(
-                model="gpt-4o",
-                messages=[
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": user_message}
-                ],
-                temperature=0.2
-            )
-            code = response.choices[0].message.content
-        elif model_type == "OpenRouter":
-            client = OpenAI(
-                base_url="https://openrouter.ai/api/v1",
-                api_key=api_key,
-            )
-            response = client.chat.completions.create(
-                model="anthropic/claude-3.5-sonnet", # Default for OpenRouter
-                messages=[
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": user_message}
-                ],
-                temperature=0.2,
-                extra_headers={
-                    "HTTP-Referer": "https://streamlitforge.com", # Optional
-                    "X-Title": "StreamlitForge", # Optional
-                }
-            )
-            code = response.choices[0].message.content
-        else:  # Claude (Direct)
-            client = Anthropic(api_key=api_key)
-            response = client.messages.create(
-                model="claude-3-5-sonnet-20240620",
-                max_tokens=4096,
-                system=SYSTEM_PROMPT,
-                messages=[
-                    {"role": "user", "content": user_message}
-                ],
-                temperature=0.2
-            )
-            code = response.content[0].text
+        client = OpenAI(
+            base_url="https://openrouter.ai/api/v1",
+            api_key=api_key,
+        )
+        response = client.chat.completions.create(
+            model="google/gemini-3.1-flash-lite",
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": user_message}
+            ],
+            temperature=0.2,
+            extra_headers={
+                "HTTP-Referer": "https://streamlitforge.com",
+                "X-Title": "StreamlitForge",
+            }
+        )
+        code = response.choices[0].message.content
 
         # Limpiar markdown si el LLM ignoró las instrucciones
         if "```python" in code:
@@ -81,5 +56,5 @@ def generate_code(prompt: str, model_type: str, api_key: str, current_code: str 
             
         return code.strip()
     except Exception as e:
-        st.error(f"Error llamando a la API: {str(e)}")
+        st.error(f"Error llamando a la API de OpenRouter: {str(e)}")
         return ""
