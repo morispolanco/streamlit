@@ -133,22 +133,38 @@ if st.session_state.codigo_actual:
     with tab4:
         st.subheader("Ejecución")
         ruta = save_app(st.session_state.codigo_actual, st.session_state.nombre_archivo)
-        st.info(f"App guardada en: `{ruta}`")
         
+        col_exec, col_dl = st.columns(2)
+        
+        with col_exec:
+            st.markdown("### 🚀 Ejecución Local")
+            st.info("Este botón solo funciona si estás corriendo StreamlitForge localmente.")
+            if st.button("▶️ Ejecutar aplicación", type="primary", use_container_width=True):
+                exito, msg = run_app(ruta)
+                if exito:
+                    st.success(msg)
+                    st.balloons()
+                else:
+                    st.error(f"Error al ejecutar: {msg}")
+        
+        with col_dl:
+            st.markdown("### 📥 Descargar")
+            st.info("Usa este botón si estás en Streamlit Cloud o quieres llevarte el archivo.")
+            st.download_button(
+                label="💾 Descargar archivo .py",
+                data=st.session_state.codigo_actual,
+                file_name=st.session_state.nombre_archivo + ".py",
+                mime="text/x-python",
+                use_container_width=True
+            )
+
+        st.markdown("---")
         st.markdown("""
-        ### Instrucciones:
-        1. Asegúrate de haber instalado las dependencias en la pestaña **📦 Dependencias**.
-        2. Haz clic en el botón de abajo para lanzar la aplicación.
-        3. Se abrirá en una nueva pestaña (por defecto http://localhost:8501).
-        """)
-        
-        if st.button("▶️ Ejecutar aplicación generada", type="primary"):
-            exito, msg = run_app(ruta)
-            if exito:
-                st.success(msg)
-                st.balloons()
-            else:
-                st.error(f"Error al ejecutar: {msg}")
+        ### Cómo correr tu app descargada:
+        1. Instala streamlit: `pip install streamlit`
+        2. Instala las dependencias necesarias (ver pestaña **📦 Dependencias**)
+        3. Ejecuta: `streamlit run {nombre}.py`
+        """.format(nombre=st.session_state.nombre_archivo))
 
     # Ciclo de refinamiento
     st.markdown("---")
@@ -162,19 +178,3 @@ if st.session_state.codigo_actual:
                 nuevo_codigo = generate_code(cambio, st.session_state.api_key, current_code=st.session_state.codigo_actual)
                 if nuevo_codigo:
                     st.session_state.codigo_actual = nuevo_codigo
-                    st.session_state.iteracion += 1
-                    st.rerun()
-
-else:
-    st.info("Describe tu idea en el sidebar y haz clic en 'Generar aplicación' para comenzar.")
-    
-    # Diseño estético para la bienvenida
-    st.markdown("""
-    # Bienvenido a StreamlitForge ⚡
-    ### De idea a aplicación en segundos.
-    
-    Usa el panel de la izquierda para describir lo que necesitas.
-    - **Inteligente:** Detecta e instala dependencias automáticamente.
-    - **Iterativo:** Refina tu app pidiendo cambios en lenguaje natural.
-    - **Listo para usar:** Ejecuta tu app con un solo clic.
-    """)
