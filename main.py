@@ -36,17 +36,30 @@ with st.sidebar:
     if nombre_archivo != st.session_state.nombre_archivo:
         st.session_state.nombre_archivo = nombre_archivo
 
-    modelo = st.radio("Modelo:", ["Claude", "GPT-4o"], index=1)
+    modelo = st.radio("Modelo:", ["Claude", "GPT-4o", "OpenRouter"], index=2)
     
-    api_key = st.text_input("API Key:", type="password", value=st.session_state.api_key)
-    if api_key:
-        st.session_state.api_key = api_key
+    # Manejo de API Keys (Secrets vs Manual)
+    secrets_key = ""
+    if modelo == "GPT-4o":
+        secrets_key = st.secrets.get("OPENAI_API_KEY", "")
+    elif modelo == "OpenRouter":
+        secrets_key = st.secrets.get("OPENROUTER_API_KEY", "")
+    else:
+        secrets_key = st.secrets.get("ANTHROPIC_API_KEY", "")
+
+    if secrets_key:
+        st.success(f"✅ API Key detectada en secrets para {modelo}")
+        st.session_state.api_key = secrets_key
+    else:
+        api_key_manual = st.text_input("API Key:", type="password", value=st.session_state.api_key)
+        if api_key_manual:
+            st.session_state.api_key = api_key_manual
 
     if st.button("🔨 Generar aplicación", use_container_width=True):
         if not descripcion:
             st.warning("Por favor describe la aplicación.")
         elif not st.session_state.api_key:
-            st.warning("Por favor ingresa una API Key.")
+            st.warning(f"Por favor ingresa una API Key para {modelo} o configúrala en secrets.")
         else:
             with st.spinner("Generando código..."):
                 codigo = generate_code(descripcion, modelo, st.session_state.api_key)
